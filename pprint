@@ -1,0 +1,112 @@
+#!/bin/bash -e
+
+export LOGFILE='./log'
+
+#This function displays information messages using a green font.
+#param: The message to display.
+#usage: info "This is some information"
+function info {
+    echo -e "\033[1;32m$@\033[0;49m"
+}
+
+#This function displays warnings in a yellow font.
+#param: The message to display.
+#usage: warn "This is a warning"
+function warn {
+    echo -e "\033[1;33mWARNING: $@\033[0;49m"
+}
+
+#This function is used to exit the script do to an unrecoverable error
+#param: The error message to display.
+#usage: die "This is an error"
+function die {
+    error $@
+
+    exit 1
+}
+
+#This function prints out an error, unlike die, it does not exit
+#param: The message to display.
+#usage: error "This is an error."
+function error {
+    echo -e "\033[1;31;47m"
+    echo "***************************************************"
+    echo "$@"
+    echo "***************************************************"
+    echo -e "\033[0;49m"
+}
+
+#Adds a log message to the log file
+#param: Log level name
+#param: The message to add
+#usage: mkmsg INFO This is a log message
+function mkmsg {
+    local level=$1
+    shift
+    echo "$level $(date +"%F@%T") $@" >> $LOGFILE
+}
+
+#These function add the message to a log file,
+#and then call the associated message function
+#function.
+function info_log {
+    mkmsg INFO "$@"
+    info "$@"
+}
+
+function warn_log {
+    mkmsg WARN "$@"
+    warn "$@"
+}
+
+function error_log {
+    mkmsg ERROR "$@"
+    error "$@"
+}
+
+function die_log {
+    mkmsg FATAL "$@"
+    die "$@"
+}
+
+#This function mails the user the given message. The
+#user can be found in ./etc/email
+#param: Subject of the message
+#param: The messge to send
+#usage: mail_msg "The subject" An email message.
+function mail_msg {
+  local subject="$1"
+  local user="$(cat etc/email)"
+  shift
+  echo "$@" | mail -s "$subject" "$user"
+}
+
+#This function will mail the log file.
+#param: The message's subject
+#param: A message to prefix to the log
+#usage: mail_log "Script failed" "The xxx script failed"
+function mail_log {
+  local subject="$1"
+  local user="$(cat etc/email)"
+  shift
+
+  mail -s "$subject" "$user" <<EOF
+$@
+
+-------------------
+$(cat $LOGFILE)
+EOF
+}
+
+#This function sends the log via email then dies
+#param: Subject of the message
+#param: The die message
+#usage: die_mail "Script failed" The xxx script failed!
+function die_mail {
+    local subect=$1
+    shift
+
+    error_log $@
+    mail_log "$1" $@
+    exit 1
+}

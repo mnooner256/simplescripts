@@ -1,0 +1,52 @@
+#!/bin/bash -e
+
+function die {
+  echo $@
+  exit 3
+}
+
+if [ -z "$1" ] ; then
+    die "usage: install-eclipse eclpise-x-x-x-x86_64.tar.gz"
+elif [ "$EUID" != "0" ] ; then
+    die "You must run this as root"
+fi
+
+echo "Installing dependencies"
+if ! apt-get -y install junit4 libhamcrest-java ; then
+    die "Failed to install dependencies"
+fi
+
+echo "Uncompressing to /opt"
+if ! sudo tar xf "$1" -C "/opt" ; then
+    die "Error: Failed to uncompress properly"
+elif [ ! -d /opt/eclipse ] ; then
+    die "Could not find /opt/eclipse"
+elif ! chmod -R +r /opt/eclipse ; then
+    die "Could not make all of the files universally readable"
+fi
+
+if [ ! -f /usr/bin/eclipse ] ; then 
+    echo "Creating eclipse startup file"
+    cat > /usr/bin/eclipse <<EOF
+export ECLIPSE_HOME="/opt/eclipse"
+\$ECLIPSE_HOME/eclipse \$*
+EOF
+    chmod 755 /usr/bin/eclipse
+fi
+
+if [ ! -f /usr/share/applications/eclipse.desktop ] ; then
+    echo "Creating the desktop menu item"
+    cat > /usr/share/applications/eclipse.desktop <<EOF
+[Desktop Entry]
+Encoding=UTF-8
+Name=Eclipse
+Comment=Eclipse IDE
+Exec=eclipse
+Icon=/opt/eclipse/icon.xpm
+Terminal=false
+Type=Application
+Categories=GNOME;Application;Development;
+StartupNotify=true
+EOF
+fi
+

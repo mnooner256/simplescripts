@@ -1,0 +1,39 @@
+#!/bin/bash -e
+
+#Install directory
+DIR=$(cd $(dirname $0); pwd)
+
+USER='mike';
+HOME="$(cat /etc/passwd | grep $USER | cut -d : -f 6)";
+
+source $DIR/pprint
+export LOGFILE='/var/log/backup.log'
+if [ -e $LOGFILE ] ; then rm $LOGFILE ; touch $LOGFILE; fi
+
+SUB="Backup Script Failed"
+
+if [[ "$UID" != "0" ]] ; then
+    die_mail "$SUB" "You must be root in order to use this script."
+elif [ -z "$HOME" ] ; then
+    die_mail "$SUB" "Could not discover the user's home directory"
+elif [ ! -d "$HOME" ] ; then
+    die_mail "$SUB" "User's home directory, \"$HOME\" is not a directory"
+fi
+
+cat > /tmp/exclude-list <<EOF
+**/.gvfs
+**/.gtk-bookmarks/.gvfs
+**/.mount
+**/*Cache
+**/*cache
+**/Trash
+EOF
+
+info_log Starting backup
+if ! rdiff-backup -v 6 --print-statistics --exclude-globbing-filelist /tmp/exclude-list --include $HOME --exclude '**' / /backup/ > /tmp/dump ; then
+    error_log "Backup failed, rdiff-backup's output:"
+    cat /tmp/dump >> "$LOGFILE"
+    die_mail "$SUB" "Backup script failed on $(date)"
+else
+    mail_log "Backup Script Succeeded" "$(date) Backup succeeded"
+fi

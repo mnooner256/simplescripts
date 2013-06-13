@@ -1,0 +1,16 @@
+#!/bin/bash
+
+if [[ "$1" == "install" ]] ; then
+    cat > $HOME/.config/autostart/EvolutionToTray.desktop <<EOF
+[Desktop Entry]
+Type=Application
+Name=Evolution To Tray
+Exec=/home/mike/.bin/start-evolution-in-tray
+Icon=system-run
+Comment=Start Evolution autmatically and minimize to the system tray.
+EOF
+
+    exit 0
+fi
+
+alltray --sticky --no-alltray evolution

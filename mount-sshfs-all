@@ -1,0 +1,8 @@
+#!/bin/bash -e
+
+DIR='/home/mike/.bin'
+MNT='/home/mike/.mount'
+
+$DIR/mount-sshfs $MNT/sun0
+$DIR/mount-sshfs $MNT/sun2
+$DIR/mount-sshfs $MNT/sun4

@@ -1,0 +1,12 @@
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Encoding=UTF-8
+Version=1.0
+Type=Application
+Terminal=false
+Name[en_US]=Mount All SSH
+Exec=/home/mile/.bin/mount-sshfs-all
+Icon[en_US]=/home/mike/.bin/icons/sshfs.png
+Name=Mount All SSH
+Icon=/home/mike/.bin/icons/sshfs.png

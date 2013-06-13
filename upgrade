@@ -1,0 +1,35 @@
+#!/bin/bash -e
+
+#Install directory
+DIR=$(cd $(dirname $0); pwd)
+
+USER='mike';
+HOME="$(cat /etc/passwd | grep $USER | cut -d : -f 6)";
+
+source $DIR/pprint
+export LOGFILE='/var/log/upgrade.log'
+if [ -e $LOGFILE ] ; then rm $LOGFILE ; touch $LOGFILE; fi
+
+SUB="Automatic Upgrade Failed"
+
+info_log "Starting upgrade"
+if sudo apt-get update | grep 'dpkg' ; then
+    if ! sudo dpkg --configure -a ; then
+        die_mail "$SUB" 'Failed to reconfigure'
+    fi
+fi
+
+if ! sudo apt-get update ; then
+    die_mail "$SUB" 'Could not update'
+fi
+
+if ! sudo apt-get -y dist-upgrade ; then
+    die_mail "$SUB" 'Failed to dist-upgrade'
+elif ! sudo apt-get -y autoremove ; then
+    die_mail "$SUB" 'Failed to cleanup any unneeded packages'
+elif ! ( sudo apt-get -y autoclean && sudo apt-get -y clean ) ; then
+    die_mail "$SUB" 'Failed to delete deb files'
+fi
+
+info_log "Automatic upgrade finished!"
+mail_log "Finished upgrade!" "Upgrade succeeded."

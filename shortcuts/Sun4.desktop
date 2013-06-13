@@ -1,0 +1,12 @@
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Encoding=UTF-8
+Version=1.0
+Type=Application
+Terminal=false
+Icon[en_US]=/home/mike/.bin/icons/sun4.svg
+Name[en_US]=Sun4
+Exec=gnome-terminal --profile=Sun4
+Name=Sun4
+Icon=/home/mike/.bin/icons/sun4.svg

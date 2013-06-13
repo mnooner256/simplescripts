@@ -1,0 +1,161 @@
+#!/bin/bash -e
+
+#This scripts directory, used to find the pprint script
+DIR=$(cd $(dirname "$0"); pwd)
+
+#Make messages display better
+source $DIR/pprint
+
+function errexit {
+  echo trapped
+  mail_log "ERROR" "The post-install script failed!"
+}
+
+#Changing the log file
+export LOGFILE='post-install.log'
+
+#Get a fresh log file
+if [ -e "$LOGFILE" ] ; then rm "$LOGFILE" ; fi
+
+#My username.
+ME='mike'
+
+#Current distro's adjective name used for apt.
+ADJECTIVE=`grep -m 1 'ubuntu' /etc/apt/sources.list.d/official-package-repositories.list | cut -d ' ' -f 3`
+
+#Virtualbox package to install
+VBOX='virtualbox-4.2'
+
+#List of applications to install
+APPS="vlc mozilla-plugin-vlc mpg321 \
+      vim-gnome cscope vim-doc build-essential gedit gedit-plugins \
+      rdiff-backup alltray libreoffice git \
+      sshfs filezilla deluge exfat-fuse exfat-utils \
+      ssmtp bsd-mailx"
+
+#Make sure we are running as root.
+if [ "$UID" != "0" ] ; then
+    die_log 'Run this script with sudo'
+fi
+
+#Install the Virtualbox and Chrome repo keys
+if ! wget -q http://download.virtualbox.org/virtualbox/debian/oracle_vbox.asc -O- | sudo apt-key add - ; then
+    die_log 'Failed to add the VirtualBox repository key'
+fi
+
+if ! wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - ; then
+    die_log 'Failed to install Chrome repository key'
+fi
+
+#Add virtual box repository apt list file
+cat >/etc/apt/sources.list.d/virtualbox.list <<EOF
+deb http://download.virtualbox.org/virtualbox/debian $ADJECTIVE contrib
+EOF
+
+#Add the Chrome repository apt list file
+cat >/etc/apt/sources.list.d/google-chrome.list <<EOF
+deb http://dl.google.com/linux/chrome/deb/ stable main
+EOF
+
+#Make the sources changes take effect
+if ! ( apt-get update || apt-get update ) ; then
+    die_log 'Could not update repository list to make source.list changes take effect'
+fi
+
+#Download the sofware that will be installed
+#if ! apt-get -d -y install $APPS ; then
+#    die_log "Failed to download the software"
+#fi
+
+#Get currently installed software one at a time
+dpkg --get-selections > selections
+
+#Install software one at a time
+#for i in $APPS ; do
+    #Only install if necessary
+#    if ! grep -q "$i" selections ; then
+#        info_log "Installing $i"
+#        if ! apt-get -y install $i ; then
+#            die_log "Failed to install $i"
+#        fi
+#    else
+#        warn_log "The package $i is already installed."
+#    fi
+#done
+
+#Install the applications
+if ! apt-get -y install $APPS ; then
+    die_log "Could not install all of the applications"
+fi
+
+
+#Install VirtualBox if it is not already installed
+if ! grep -q "$VBOX" selections ; then
+    if ! apt-get -y install $VBOX ; then
+        die_log "Could not install $VBOX"
+    fi
+fi
+
+if ! grep -q "google-chrome-stable" selections ; then
+    if ! apt-get -y install google-chrome-stable ; then
+        die_log "Could not install Google Chrome"
+    fi
+fi
+
+rm selections
+
+#Add myself to the vboxusers group if I don't already belong
+if ! getent group vboxusers | grep -q $ME ; then
+    if ! adduser $ME vboxusers ; then
+        die_log "Could not add user '$ME' to group 'vboxusers'"
+    fi
+fi
+
+
+#Upgrade the system
+info 'Upgrading the system'
+if ! ( apt-get -y upgrade && apt-get -y dist-upgrade && \
+       apt-get -y autoremove && apt-get -y clean ) ; then
+    die_log 'Upgrade failed'
+fi
+
+#Adjust the sudoers file so it does not ask for a password
+info_log Fixing sudoers file
+if ! cp -v /etc/sudoers /tmp/sudoers.tmp ; then
+    die_log 'Could not copy sudoers to begin no password change'
+elif ! sed -i 's/^%admin.*$/%admin ALL=NOPASSWD:ALL/' /tmp/sudoers.tmp ; then
+    die_log 'Could not replace ALL with NOPASSWD field in admin.'
+elif ! sed -i 's/^%sudo.*$/%sudo ALL=NOPASSWD:ALL/' /tmp/sudoers.tmp ; then
+    die_log 'Could not replace ALL with NOPASSWD field in sudoers.'
+elif ! mv -v /tmp/sudoers.tmp /etc/sudoers ; then
+    die_log 'Could not replace sudoers file with new one.'
+fi
+
+#Make the backup script active
+info_log Creating backup script link
+if [ ! -e /etc/cron.daily/backup-home ] ; then
+    if ! sudo ln -vs $DIR/backup-home /etc/cron.daily/ ; then
+        die_log 'Could not create the backup script symlink'
+    fi
+fi
+
+#Make the automatic upgrade script active
+info_log Creating automatic upgrade link
+if [ ! -e /etc/cron.daily/upgrade ] ; then
+    if ! sudo ln -vs $DIR/upgrade /etc/cron.daily/ ; then
+        die_log 'Could not create the upgrade script symlink'
+    fi
+fi
+
+#Add the servers to the fstab file
+source $DIR/add-sshfs-to-fstab
+
+#Set up ssmtp
+info_log Setting up ssmtp.conf
+cp -v $DIR/etc/ssmtp.conf /etc/ssmtp
+
+
+#Send an email when the post install is finished.
+#This acts as a test for whether the ssmtp config
+#worked.
+mail_log 'Post install script finished successfully' 'No problems to report'

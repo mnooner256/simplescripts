@@ -1,0 +1,38 @@
+#!/bin/bash
+
+#Check that the user passed in the mount point
+if [ -z $1 ] ; then
+    echo "usage: $0 mount-dir"
+    exit 1
+#Check that the mount point is in /etc/fstab
+elif ! cat /etc/fstab | grep 'sshfs.*sun0' > /dev/null ; then
+    zenity --error --title='Mount sshfs Script' --text "$1 is not a valid sshfs mount point"
+    exit 1
+fi
+
+
+#See if the passed in mount point is already mounted.
+if cat /etc/mtab | grep "$1" > /dev/null ; then
+    #It is alraedy mounted, so the user must want us to unmount it.
+    if ! umount -v $1 &> /tmp/mount-sshfs.log ; then
+        #Umount failed, get the error message
+        EMSG=`cat /tmp/mount-sshfs.log`
+
+        #Display and error dialog
+        zenity --error --title='Mount sshfs Script' --text="Failed to unmount!\n\n$EMSG"
+        
+        exit 1
+    fi
+else
+    #It is not mounted, so the user wants us to mount it.
+    if ! mount -v $1 &> /tmp/mount-sshfs.log ; then
+        #Mount failed, get the error message
+        EMSG=`cat /tmp/mount-sshfs.log`
+        
+        #Display and error dialog
+        zenity --error --title='Mount sshfs Script' --text="Failed to mount!\n\n$EMSG"
+        
+        exit 1
+    fi
+fi
+

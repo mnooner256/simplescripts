@@ -1,0 +1,19 @@
+#!/bin/bash -e
+
+if [ ! -f "$1" ] ; then
+    echo "
+This script outputs the last name and first name of students form
+the given file in a format appropriate for being inserted into a
+spreadsheet. The file's contents must be copied from the \"Summary
+Class List\" page on myUCA. Simply copy the table containing the
+roster, and save it as is in a file. Then execute this script. The
+stdout be formatted into rows containing the students' last names
+followed by first names separated with a tab character.
+    
+usage: fix-roster roster.txt
+"
+    exit 1
+fi
+
+echo "LAST	FIRST"
+sed "s|^[0-9] \t\([a-zA-Z ]\+\), \([a-zA-Z \']\+\) [A-Z]\?\.\?.*$|\1\t\2|" "$1"

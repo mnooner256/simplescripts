@@ -1,0 +1,2 @@
+To add shortcuts to the desktop menu, create symbolic links to the desktop
+files in the ~/.local/share/applications/ directory.

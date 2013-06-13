@@ -1,0 +1,31 @@
+#!/bin/bash
+
+#This script adds my servers to fstab so they can be mounted
+#via sshfs
+
+if [ ! -d /media/sun0 ] ; then
+    mkdir /media/sun0
+    chmod 777 /media/sun0
+fi
+if [ ! -d /media/sun2 ] ; then
+    mkdir /media/sun2
+    chmod 777 /media/sun2
+fi
+if [ ! -d /media/sun4 ] ; then
+    mkdir /media/sun4
+    chmod 777 /media/sun4
+fi
+
+if ! grep -q 'sshfs' /etc/fstab ; then
+    echo '
+
+#SSH servers
+sshfs#administrator@sun0.cs.uca.edu:    /media/sun0    fuse    defaults,noauto,user,follow_symlinks,fsname=sshfs#administrator@sun0.cs.uca.edu:    0 0
+sshfs#administrator@sun2.cs.uca.edu:    /media/sun2    fuse    defaults,noauto,user,follow_symlinks,fsname=sshfs#administrator@sun2.cs.uca.edu:    0 0
+sshfs#administrator@sun4.cs.uca.edu:    /media/sun4    fuse    defaults,noauto,user,follow_symlinks,fsname=sshfs#administrator@sun4.cs.uca.edu:    0 0
+' | sudo tee -a /etc/fstab > /dev/null
+    echo 'Successfully altered /etc/fstab'
+else
+    echo 'Lines already in fstab'
+fi
+

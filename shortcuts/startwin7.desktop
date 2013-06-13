@@ -1,0 +1,13 @@
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Encoding=UTF-8
+Version=1.0
+Type=Application
+Terminal=false
+Name[en_US]=Windows 7
+Exec=/home/mike/.bin/startwin7
+Name=Windows 7
+Icon[en_US]=/home/mike/.bin/icons/Windows7.png
+Icon=/home/mike/.bin/icons/Windows7.png
+Categories=Emulator;System;X-MandrivaLinux-System;Application;
