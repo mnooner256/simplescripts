@@ -28,9 +28,9 @@ VBOX='virtualbox-4.2'
 
 #List of applications to install
 APPS="vlc mozilla-plugin-vlc mpg321 \
-      vim-gnome cscope vim-doc build-essential gedit gedit-plugins \
-      rdiff-backup alltray libreoffice git \
-      sshfs filezilla deluge exfat-fuse exfat-utils \
+      vim-gnome git cscope vim-doc build-essential gedit gedit-plugins \
+      rdiff-backup alltray libreoffice \
+      sshfs openssh-server filezilla deluge exfat-fuse exfat-utils \
       ssmtp bsd-mailx"
 
 #Make sure we are running as root.
