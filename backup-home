@@ -1,12 +1,13 @@
 #!/bin/bash -e
 
 #Install directory
-DIR=$(cd $(dirname $0); pwd)
+DIR=$(dirname $(readlink -fn $0))
+cd "$DIR"
 
 USER='mike';
 HOME="$(cat /etc/passwd | grep $USER | cut -d : -f 6)";
 
-source $DIR/pprint
+source ./pprint
 export LOGFILE='/var/log/backup.log'
 if [ -e $LOGFILE ] ; then rm $LOGFILE ; touch $LOGFILE; fi
 
@@ -35,5 +36,6 @@ if ! rdiff-backup -v 6 --print-statistics --exclude-globbing-filelist /tmp/exclu
     cat /tmp/dump >> "$LOGFILE"
     die_mail "$SUB" "Backup script failed on $(date)"
 else
+    info_log "Backup Script Succeeded"
     mail_log "Backup Script Succeeded" "$(date) Backup succeeded"
 fi

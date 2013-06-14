@@ -69,6 +69,11 @@ function die_log {
     die "$@"
 }
 
+#Prints who to send mail to. It does this via cat.
+function get_to {
+  cat "./etc/email"
+}
+
 #This function mails the user the given message. The
 #user can be found in ./etc/email
 #param: Subject of the message
@@ -76,9 +81,10 @@ function die_log {
 #usage: mail_msg "The subject" An email message.
 function mail_msg {
   local subject="$1"
-  local user="$(cat etc/email)"
+  local user="$(get_to)"
   shift
-  echo "$@" | mail -s "$subject" "$user"
+
+  echo "$@" | mail -s "$subject" $user
 }
 
 #This function will mail the log file.
@@ -87,10 +93,10 @@ function mail_msg {
 #usage: mail_log "Script failed" "The xxx script failed"
 function mail_log {
   local subject="$1"
-  local user="$(cat etc/email)"
+  local user=$(get_to)
   shift
 
-  mail -s "$subject" "$user" <<EOF
+  mail -s "$subject" $user <<EOF
 $@
 
 -------------------
