@@ -13,24 +13,30 @@ if [ -e $LOGFILE ] ; then rm $LOGFILE ; touch $LOGFILE; fi
 
 SUB="Automatic Upgrade Failed"
 
+installlog=/tmp/apt.log
+
 info_log "Starting upgrade"
-if sudo apt-get update | grep 'dpkg' ; then
+if sudo apt-get -q update | grep 'dpkg' ; then
     if ! sudo dpkg --configure -a ; then
         die_mail "$SUB" 'Failed to reconfigure'
     fi
 fi
 
-if ! sudo apt-get update ; then
+if ! sudo apt-get -y -q update ; then
     die_mail "$SUB" 'Could not update'
 fi
 
-if ! sudo apt-get -y dist-upgrade ; then
+if ! sudo apt-get -q -y dist-upgrade | tee $installlog ; then
     die_mail "$SUB" 'Failed to dist-upgrade'
-elif ! sudo apt-get -y autoremove ; then
+elif ! sudo apt-get -q -y autoremove ; then
     die_mail "$SUB" 'Failed to cleanup any unneeded packages'
-elif ! ( sudo apt-get -y autoclean && sudo apt-get -y clean ) ; then
+elif ! ( sudo apt-get -q -y autoclean && sudo apt-get -q -y clean ) ; then
     die_mail "$SUB" 'Failed to delete deb files'
 fi
 
 info_log "Automatic upgrade finished!"
 mail_log "Finished upgrade!" "Upgrade succeeded."
+
+if grep -q linux-image $installlog ; then
+    shutdown -r "now" 'Rebooting to complete system update.'
+fi
