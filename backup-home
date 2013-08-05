@@ -11,7 +11,7 @@ source ./pprint
 export LOGFILE='/var/log/backup.log'
 if [ -e $LOGFILE ] ; then rm $LOGFILE ; touch $LOGFILE; fi
 
-SUB="Backup Script Failed"
+SUB="Backup Script *FAILED*"
 
 if [[ "$UID" != "0" ]] ; then
     die_mail "$SUB" "You must be root in order to use this script."
