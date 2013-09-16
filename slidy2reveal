@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ -z "$1" ] ; then
+  echo "usage: $0 file-to-change"
+  exit 1;
+fi
+
+sed -i 's|<div class="slide.*">|<section>|
+        s|</div>|</section>|
+        s|<pre class="brush: python">|<pre><code class="python">|
+        s|</pre>|</code></pre>|' "$1"
