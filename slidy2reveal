@@ -7,7 +7,7 @@ fi
 
 sed -i 's|<div class="slide.*">|<section>|
         s|</div>|</section>|
-        s|<pre class="brush: python">|<pre><code class="python">|
+        s|<pre class="brush: \(.*\)">|<pre><code class="\1">|
         s|</pre>|</code></pre>|
         s|print \(.*\)$|print( \1 )|
         s|h1|h2|g
