@@ -9,7 +9,8 @@ HOME="$(cat /etc/passwd | grep $USER | cut -d : -f 6)";
 
 source ./pprint
 export LOGFILE='/var/log/backup.log'
-if [ -e $LOGFILE ] ; then rm $LOGFILE ; touch $LOGFILE; fi
+if [ -e $LOGFILE ] ; then rm $LOGFILE ; fi
+touch $LOGFILE
 
 SUB="Backup Script *FAILED*"
 
