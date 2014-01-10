@@ -24,7 +24,7 @@ ME='mike'
 ADJECTIVE=`grep -m 1 'ubuntu' /etc/apt/sources.list.d/official-package-repositories.list | cut -d ' ' -f 3`
 
 #Virtualbox package to install
-VBOX='virtualbox-4.2'
+VBOX='virtualbox-4.3'
 
 #List of applications to install
 APPS="vlc mozilla-plugin-vlc mpg321 \
