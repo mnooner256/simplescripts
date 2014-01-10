@@ -38,5 +38,5 @@ info_log "Automatic upgrade finished!"
 mail_log "Finished upgrade!" "Upgrade succeeded."
 
 if grep -q linux-image $installlog ; then
-    shutdown -r "now" 'Rebooting to complete system update.'
+    shutdown -r "00:00" 'Rebooting at midnight to complete system update.'
 fi
