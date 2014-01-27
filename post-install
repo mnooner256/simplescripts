@@ -38,7 +38,7 @@ if [ "$UID" != "0" ] ; then
     die_log 'Run this script with sudo'
 fi
 
-#Install the Virtualbox and Chrome repo keys
+#Install the Virtualbox and Chrome repository keys
 if ! wget -q http://download.virtualbox.org/virtualbox/debian/oracle_vbox.asc -O- | sudo apt-key add - ; then
     die_log 'Failed to add the VirtualBox repository key'
 fi
@@ -57,31 +57,18 @@ cat >/etc/apt/sources.list.d/google-chrome.list <<EOF
 deb http://dl.google.com/linux/chrome/deb/ stable main
 EOF
 
+#Install the SimpleScreenRecorder repositiory
+if ! echo -e '\n\n' | add-apt-repository ppa:maarten-baert/simplescreenrecorder ; then
+    die_log 'Failed to install SimpleScreenRecorder Repo'
+fi
+
 #Make the sources changes take effect
 if ! ( apt-get update || apt-get update ) ; then
     die_log 'Could not update repository list to make source.list changes take effect'
 fi
 
-#Download the sofware that will be installed
-#if ! apt-get -d -y install $APPS ; then
-#    die_log "Failed to download the software"
-#fi
-
 #Get currently installed software one at a time
-dpkg --get-selections > selections
-
-#Install software one at a time
-#for i in $APPS ; do
-    #Only install if necessary
-#    if ! grep -q "$i" selections ; then
-#        info_log "Installing $i"
-#        if ! apt-get -y install $i ; then
-#            die_log "Failed to install $i"
-#        fi
-#    else
-#        warn_log "The package $i is already installed."
-#    fi
-#done
+dpkg --get-selections > /tmp/selections
 
 #Install the applications
 if ! apt-get -y install $APPS ; then
@@ -90,19 +77,28 @@ fi
 
 
 #Install VirtualBox if it is not already installed
-if ! grep -q "$VBOX" selections ; then
+if ! grep -q "$VBOX" /tmp/selections ; then
     if ! apt-get -y install $VBOX ; then
         die_log "Could not install $VBOX"
     fi
 fi
 
-if ! grep -q "google-chrome-stable" selections ; then
+#Install Chrome if it not already installed
+if ! grep -q "google-chrome-stable" /tmp/selections ; then
     if ! apt-get -y install google-chrome-stable ; then
         die_log "Could not install Google Chrome"
     fi
 fi
 
-rm selections
+#Install SimpleScreenRecorder if not already installed
+if ! grep -q 'simplescreenrecorder' /tmp/selections ; then
+    if ! apt-get -y install simplescreenrecorder ; then
+        die_log "Could not install SimpleScreenRecorder"
+    fi
+fi
+
+#Clean up selections file
+rm /tmp/selections
 
 #Add myself to the vboxusers group if I don't already belong
 if ! getent group vboxusers | grep -q $ME ; then
@@ -113,14 +109,14 @@ fi
 
 
 #Upgrade the system
-info 'Upgrading the system'
+info_log 'Upgrading the system'
 if ! ( apt-get -y upgrade && apt-get -y dist-upgrade && \
        apt-get -y autoremove && apt-get -y clean ) ; then
     die_log 'Upgrade failed'
 fi
 
 #Adjust the sudoers file so it does not ask for a password
-info_log Fixing sudoers file
+info_log 'Fixing sudoers file'
 if ! cp -v /etc/sudoers /tmp/sudoers.tmp ; then
     die_log 'Could not copy sudoers to begin no password change'
 elif ! sed -i 's/^%admin.*$/%admin ALL=NOPASSWD:ALL/' /tmp/sudoers.tmp ; then
@@ -147,8 +143,8 @@ if [ ! -e /etc/cron.daily/upgrade ] ; then
     fi
 fi
 
-#Add the servers to the fstab file
-source $DIR/add-sshfs-to-fstab
+#Add the servers as SSH FS's to the fstab file
+$DIR/add-sshfs-to-fstab
 
 #Set up ssmtp
 info_log Setting up ssmtp.conf
