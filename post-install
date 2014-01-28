@@ -27,8 +27,8 @@ ADJECTIVE=`grep -m 1 'ubuntu' /etc/apt/sources.list.d/official-package-repositor
 VBOX='virtualbox-4.3'
 
 #List of applications to install
-APPS="vlc mozilla-plugin-vlc mpg321 \
-      vim-gnome git cscope vim-doc build-essential gedit gedit-plugins \
+APPS="vlc browser-plugin-vlc mpg321 \
+      vim-gnome git cscope vim-doc build-essential \
       rdiff-backup alltray libreoffice \
       sshfs openssh-server filezilla deluge exfat-fuse exfat-utils \
       ssmtp bsd-mailx"
@@ -58,7 +58,7 @@ deb http://dl.google.com/linux/chrome/deb/ stable main
 EOF
 
 #Install the SimpleScreenRecorder repositiory
-if ! echo -e '\n\n' | add-apt-repository ppa:maarten-baert/simplescreenrecorder ; then
+if ! add-apt-repository ppa:maarten-baert/simplescreenrecorder -y ; then
     die_log 'Failed to install SimpleScreenRecorder Repo'
 fi
 
