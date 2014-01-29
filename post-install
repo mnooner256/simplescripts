@@ -97,6 +97,21 @@ if ! grep -q 'simplescreenrecorder' /tmp/selections ; then
     fi
 fi
 
+#BUG FIX: Mint 16 has a bug where gedit-plugins depends on
+#a newer version of gedit then the one provided. This fixes
+#the problem. Probably need to remove this for Mint 17.
+#The fix works by installing the Ubuntu version of the packages
+#instead of the Mint versions.
+if grep -q 'gedit' /tmp/selections ; then
+    if ! apt-get -y purge gedit gedit-plugins gedit-common ; then
+        warn_log 'Could not remove gedit in order to install new version'
+    fi
+
+    if ! apt-get -y install gedit/$ADJECTIVE gedit-plugins/$ADJECTIVE ; then
+        die_log 'Could not install new version of gedit'
+    fi
+fi
+
 #Clean up selections file
 rm /tmp/selections
 
