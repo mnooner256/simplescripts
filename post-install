@@ -1,5 +1,11 @@
 #!/bin/bash -e
 
+#Make sure we are running as root.
+if [ "$UID" != "0" ] ; then
+    echo 'Run this script with sudo'
+    exit 1
+fi
+
 #This scripts directory, used to find the pprint script
 DIR=$(cd $(dirname "$0"); pwd)
 
@@ -17,8 +23,6 @@ export LOGFILE='post-install.log'
 #Get a fresh log file
 if [ -e "$LOGFILE" ] ; then rm "$LOGFILE" ; fi
 
-#My username.
-ME='mike'
 
 #Current distro's adjective name used for apt.
 ADJECTIVE=`grep -m 1 'ubuntu' /etc/apt/sources.list.d/official-package-repositories.list | cut -d ' ' -f 3`
@@ -31,12 +35,7 @@ APPS="vlc browser-plugin-vlc mpg321 \
       vim-gnome git cscope vim-doc build-essential \
       rdiff-backup alltray libreoffice \
       sshfs openssh-server filezilla deluge exfat-fuse exfat-utils \
-      ssmtp bsd-mailx"
-
-#Make sure we are running as root.
-if [ "$UID" != "0" ] ; then
-    die_log 'Run this script with sudo'
-fi
+      ssmtp bsd-mailx inotify-tools"
 
 #Install the Virtualbox and Chrome repository keys
 if ! wget -q http://download.virtualbox.org/virtualbox/debian/oracle_vbox.asc -O- | sudo apt-key add - ; then
@@ -115,13 +114,15 @@ fi
 #Clean up selections file
 rm /tmp/selections
 
-#Add myself to the vboxusers group if I don't already belong
-if ! getent group vboxusers | grep -q $ME ; then
-    if ! adduser $ME vboxusers ; then
-        die_log "Could not add user '$ME' to group 'vboxusers'"
+#Add regular users to the vboxusers group
+#Regular users are determined by having a UID between 1000-1999
+for me in $( grep 'x:1[0-9]\{3\}:' /etc/passwd | cut -f 1 -d : ) ; do
+    if ! getent group vboxusers | grep -q $me ; then
+        if ! adduser $me vboxusers ; then
+            die_log "Could not add user '$me' to group 'vboxusers'"
+        fi
     fi
-fi
-
+done
 
 #Upgrade the system
 info_log 'Upgrading the system'

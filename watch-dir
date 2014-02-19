@@ -1,0 +1,8 @@
+#!/bin/bash
+
+#usage: while true ; do watch-dir; some-commands ; done
+
+#This is a simple wrapper for inotifywait with the options
+#I most commonly use
+FORMAT=$( echo -e "\033[1;33m%w%f\033[0m written" )
+inotifywait -qre close_write --format "$FORMAT" .
