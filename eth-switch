@@ -1,0 +1,13 @@
+#!/bin/bash -e
+
+if [ ! $1 ] ; then
+    echo usage: $0 connection-id
+    exit 1
+elif ! nmcli connection | awk '{print $1}' | grep -q "$1" ; then
+    echo \"$1\" is not a know connection ID.
+    echo Use one of the following:
+    nmcli connection | awk '{print $1}' | tail -n+2
+    exit 2
+fi
+
+nmcli c up id "$1"
