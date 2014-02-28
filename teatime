@@ -1,0 +1,31 @@
+#!/bin/bash -e
+
+#This function returns after the given seconds
+#It displays a simple countdown message
+#The message should be a printf style template with
+#a %d for the countdown numbers
+#usage: countdown 123 'Message %d seconds'
+countdown() {
+    TIMELEFT=$1
+    BLANK=$( printf ' %.0s' $( seq 1 $(( ${#TIMELEFT} + ${#2} )) ) )
+    while true ; do
+        if [[ "0" < "$TIMELEFT" ]] ; then
+            printf "\r$BLANK\r$2" $TIMELEFT
+            sleep 1s;
+            TIMELEFT=$(( $TIMELEFT - 1 ))
+        else
+            break
+        fi
+    done
+}
+
+#Steep tea for 2 minutes
+countdown 100 'Tea will be steeped in %d seconds.'
+espeak 'Your tea is steeped'
+
+#Wait 5 minutes for the tea to cool
+countdown 300 'Tea will be ready to drink in %d seconds.'
+espeak 'Your tea is ready to drink'
+
+#Add an empty line so the prompt appears on a new line
+echo
