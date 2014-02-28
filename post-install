@@ -165,6 +165,8 @@ $DIR/add-sshfs-to-fstab
 #Set up ssmtp
 info_log Setting up ssmtp.conf
 cp -v $DIR/etc/ssmtp.conf /etc/ssmtp
+chmod 640 /etc/ssmtp/ssmtp.conf
+chown root:mail /etc/ssmtp/ssmtp.conf
 
 #I like cronttab to run daily, weekly, etc at 3 in the morning
 #so replace it with my on cronttab
