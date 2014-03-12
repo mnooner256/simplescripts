@@ -20,6 +20,12 @@ elif [ -z "$HOME" ] ; then
     die_mail "$SUB" "Could not discover the user's home directory"
 elif [ ! -d "$HOME" ] ; then
     die_mail "$SUB" "User's home directory, \"$HOME\" is not a directory"
+elif ! mount | grep -q /backup ; then
+    if mount /backup ; then
+        info_log "Mounted the /backup file system"
+    else
+        die_mail "$SUB" "The /backup file system could not be mounted"
+    fi
 fi
 
 cat > /tmp/exclude-list <<EOF
