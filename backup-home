@@ -36,6 +36,8 @@ cat > /tmp/exclude-list <<EOF
 **/*cache
 **/Trash
 **/Downloads
+**/Dropbox
+**/test
 EOF
 
 info_log Starting backup
