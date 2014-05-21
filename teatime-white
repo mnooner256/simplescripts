@@ -12,7 +12,7 @@ countdown() {
     TIMELEFT=$1
     BLANK=$( printf ' %.0s' $( seq 1 $(( ${#TIMELEFT} + ${#2} )) ) )
     while true ; do
-        if [[ "0" <= "$TIMELEFT" ]] ; then
+        if [[ "0" -le "$TIMELEFT" ]] ; then
             MIN=$(( $TIMELEFT / 60 ))
             SEC=$(( $TIMELEFT - ($MIN * 60) ))
             printf "\r$BLANK\r$2" $MIN $SEC
