@@ -1,0 +1,23 @@
+#!/bin/bash -e
+
+#Make sure we are root
+if [[ "$UID" != 0 ]] ; then
+    echo 'You must be root to do this.'
+    echo "usage: sudo $0"
+    exit 1
+
+#Check if Gedit has already been updated
+elif gedit --version | grep -q 'Version 3.' ; then
+    echo 'Gedit is already version 3'
+    exit 2
+fi
+
+#Get the Ubuntu adjective
+export ADJECTIVE=$( grep -m 1 'ubuntu' /etc/apt/sources.list.d/official-package-repositories.list | cut -d ' ' -f 3 )
+
+#Remove the current version of Gedit (i.e. Gedit version 2.x)
+apt-get purge -y gedit gedit-common
+
+#Install the 3.x version of Gedit
+apt-get install -y gedit-common/$ADJECTIVE gedit/$ADJECTIVE
+
