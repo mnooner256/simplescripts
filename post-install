@@ -25,17 +25,21 @@ if [ -e "$LOGFILE" ] ; then rm "$LOGFILE" ; fi
 
 
 #Current distro's adjective name used for apt.
-ADJECTIVE=`grep -m 1 'ubuntu' /etc/apt/sources.list.d/official-package-repositories.list | cut -d ' ' -f 3`
+if [ -f /etc/apt/sources.list.d/official-package-repositories.list ] ; then
+    ADJECTIVE=$( grep -m 1 'ubuntu' /etc/apt/sources.list.d/official-package-repositories.list | cut -d ' ' -f 3 )
+else
+    ADJECTIVE=$( grep -m 1 'deb.*ubuntu' /etc/apt/sources.list | cut -d ' ' -f 3 )
+fi
 
 #Virtualbox package to install
 VBOX='virtualbox-4.3'
 
 #List of applications to install
-APPS="vlc browser-plugin-vlc mpg321 \
+APPS="vlc browser-plugin-vlc mpg321 espeak \
       vim-gnome git cscope vim-doc build-essential \
       rdiff-backup alltray libreoffice \
       sshfs openssh-server filezilla deluge exfat-fuse exfat-utils \
-      ssmtp bsd-mailx inotify-tools"
+      ssmtp bsd-mailx inotify-tools wallch"
 
 #Install the Virtualbox and Chrome repository keys
 if ! wget -q http://download.virtualbox.org/virtualbox/debian/oracle_vbox.asc -O- | sudo apt-key add - ; then
@@ -96,11 +100,9 @@ if ! grep -q 'simplescreenrecorder' /tmp/selections ; then
     fi
 fi
 
-#BUG FIX: Mint 16 has a bug where gedit-plugins depends on
-#a newer version of gedit then the one provided. This fixes
-#the problem. Probably need to remove this for Mint 17.
-#The fix works by installing the Ubuntu version of the packages
-#instead of the Mint versions.
+#BUG FIX: Mint uses the old 2.x version of Gedit instead of
+#the newer version. The fix works by installing the Ubuntu
+#version of the packages instead of the Mint versions.
 if grep -q 'gedit' /tmp/selections ; then
     if ! apt-get -y purge gedit gedit-plugins gedit-common ; then
         warn_log 'Could not remove gedit in order to install new version'
