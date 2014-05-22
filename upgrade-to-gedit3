@@ -9,7 +9,7 @@ if [[ "$UID" != 0 ]] ; then
 #Check if Gedit has already been updated
 elif gedit --version | grep -q 'Version 3.' ; then
     echo 'Gedit is already version 3'
-    exit 2
+    exit 0
 fi
 
 #Get the Ubuntu adjective
@@ -20,4 +20,3 @@ apt-get purge -y gedit gedit-common
 
 #Install the 3.x version of Gedit
 apt-get install -y gedit-common/$ADJECTIVE gedit/$ADJECTIVE
-
