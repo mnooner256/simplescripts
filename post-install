@@ -35,7 +35,7 @@ fi
 VBOX='virtualbox-4.3'
 
 #List of applications to install
-APPS="vlc browser-plugin-vlc mpg321 espeak \
+APPS="vlc browser-plugin-vlc mpg321 espeak python3-pip \
       vim-gnome git cscope vim-doc build-essential \
       rdiff-backup alltray libreoffice \
       sshfs openssh-server filezilla deluge exfat-fuse exfat-utils \
@@ -100,17 +100,23 @@ if ! grep -q 'simplescreenrecorder' /tmp/selections ; then
     fi
 fi
 
+#Install the proprietary video driver
+info_log 'Installing any needed proprietary drivers'
+if ! ubuntu-drivers autoinstall ; then
+    die_log 'Failed to install proprietary drivers'
+fi
+
 #BUG FIX: Mint uses the old 2.x version of Gedit instead of
 #the newer version. The fix works by installing the Ubuntu
-#version of the packages instead of the Mint versions.
-if grep -q 'gedit' /tmp/selections ; then
-    if ! apt-get -y purge gedit gedit-plugins gedit-common ; then
-        warn_log 'Could not remove gedit in order to install new version'
-    fi
+#version of the packages instead of the Mint versions. I have
+#farmed this out to a separate script.
+if ! "$DIR/upgrade-to-gedit3" ; then
+    die_log 'Failed to upgrade Gedit 2.x to Gedit 3.x'
+fi
 
-    if ! apt-get -y install gedit/$ADJECTIVE gedit-plugins/$ADJECTIVE ; then
-        die_log 'Could not install new version of gedit'
-    fi
+#Install Pylint via PIP
+if ! pip3 install pylint ; then
+    warn_log 'Failed to install Pylint'
 fi
 
 #Clean up selections file
