@@ -1,0 +1,66 @@
+#!/bin/bash -e
+
+#Make sure we are root
+if [[ "$UID" != 0 ]] ; then
+    echo 'You must be root to do this.'
+    echo "usage: sudo $0"
+    exit 1
+fi
+
+#This scripts directory, used to find the pprint script
+DIR=$(cd $(dirname "$0"); pwd)
+
+source $DIR/pprint
+
+#Location of the script's etc directory
+ETC="$DIR/etc"
+
+#This is the location for system connection key files
+SYSCONS=/etc/NetworkManager/system-connections/
+
+#Get the file name of the current auto-created Dhcp configuration
+for f in $SYSCONS/* ; do
+    #Make sure the file is an ethernet file and setup for Dhcp
+    if grep -q '802-3-ethernet' "$f" && grep -q 'method=auto' "$f" ; then
+        DHCP="$f"
+        break
+    fi
+done
+
+if [ -z "$DHCP" ] ; then
+    die 'Failed to find the auto-created Dhcp network key file'
+    exit 2
+fi
+
+#Change the name of the connection to Dhcp
+info 'Fixing Dhcp key file'
+sed -i 's/^id=.*$/id=Dhcp/' "$DHCP"
+
+info 'Locating mac-address'
+MAC=$( grep 'mac-address=' $DHCP | cut -d '=' -f 2 )
+if [ -z "$MAC" ] ; then
+    die 'Failed to discover the network mac address'
+    exit 3
+fi
+
+#Fix up and place the manual connections
+info 'Placing manual configuration files'
+for f in $ETC/* ; do
+    #Only process network manager key files
+    if ! grep -q '^\[802-3-ethernet\]' "$f" ; then
+        continue
+    fi
+
+    FNAME=$( basename "$f" )
+    DEST="$SYSCONS/$FNAME"
+    UUID=$( uuidgen )
+
+    info "\tPlacing $FNAME key file"
+    sed -e "s/mac-address=.*$/mac-address=$MAC/" \
+        -e "s/uuid=.*$/uuid=$UUID/" "$f" > "$DEST"
+
+    chmod 600 "$DEST"
+done
+
+info "Restarting network-manager"
+service network-manager restart
