@@ -139,6 +139,11 @@ if ! ( apt-get -y upgrade && apt-get -y dist-upgrade && \
     die_log 'Upgrade failed'
 fi
 
+#Setup NetworkManager configuration files
+if ! "$DIR/setup-nm" ; then
+    die_log "Failed to properly setup NetworkManager configuration"
+fi
+
 #Adjust the sudoers file so it does not ask for a password
 info_log 'Fixing sudoers file'
 if ! cp -v /etc/sudoers /tmp/sudoers.tmp ; then
